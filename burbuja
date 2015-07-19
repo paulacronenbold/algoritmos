@@ -1,0 +1,56 @@
+#include "stdafx.h"
+#include <iostream>
+#include "conio.h"
+#define max 10
+
+using namespace std;
+
+void cargar(int b[],int n);
+void mostrar(int b[],int n);
+void ordenar(int b[],int n);
+
+void main ()
+{
+	int b[max],n;
+		do{
+			cout<<"Ingrese la cantidad: ";
+	        cin>>n;
+		}while (n>10);
+	cargar(b,n);
+	ordenar(b,n);
+	mostrar(b,n);
+
+}
+
+void cargar (int b[],int n)
+{int i;
+ for (i=0;i<n;i++)
+ { cout<<"Ingreseun numero:";
+   cin>>b[i];
+ }
+}
+
+void mostrar (int b [],int n)
+{int i;
+ for(i=0;i<n;i++)
+ {
+	 cout<<"V["<<i<<"]="<<b[i]<<endl;
+ }
+
+}
+
+void ordenar (int b[],int n)
+{
+	int i,j,aux;
+	for(i=0;i<n;i++)
+	{for(j=0;j<n;j++)
+	  {
+	  if(b[i]>b[j])
+	   
+		{  aux=b[i];
+		  b[i]=b[j];
+		  b[j]=aux;
+	    }
+	  }
+	}
+}
