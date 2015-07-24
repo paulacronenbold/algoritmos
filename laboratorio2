@@ -1,0 +1,79 @@
+#include "stdafx.h"
+#include <iostream>
+#include "conio.h"                   
+#include <stdio.h> 
+#include <string>
+#define max 50;
+using namespace std;
+
+struct hospital 
+{ int nro_hospital;
+  string direccion;
+  int telefono;
+  int fecha_registro;
+  int nro_personal;
+};
+void crearArchivoHospital ();
+void adicionarDatos ();
+void mostrar();
+void main()
+{
+    crearArchivoHospital();
+    adicionarDatos();
+	mostrar();
+    getch();
+}
+void crearArchivoHospital ()
+{ FILE*ptr;
+  ptr=fopen("hospital.dat","wb"),
+  fclose(ptr);
+}
+void adicionarDatos ()
+{hospital reg;
+ FILE*ptr;
+ int n,i;
+ ptr= fopen("hospital.dat","r+b");
+ if(ptr==NULL)
+	 ptr=fopen("hospital.dat","wb");
+
+ cout<<"ingrese la cantidad de n:";
+ cin>>n;
+ for(i=0;i<n;i++)
+  { cout<<"ingrese el numero del hospital:";
+    cin>>reg.nro_hospital;
+	cout<<"ingrese la direccion:";
+	cin.ignore();
+	getline(cin,reg.direccion);
+    cout<<"ingrese el numero de telefono:";
+	cin>>reg.telefono;
+	cout<<"ingrese la fecha de registro:";
+	cin>>reg.fecha_registro;
+	cout<<"ingrese el numero de personal:";
+	cin>>reg.nro_personal;
+	fwrite(&reg,sizeof(reg),1,ptr);
+
+  }
+	fclose (ptr);
+  
+}
+
+void mostrar()
+{ hospital reg;
+  FILE*ptr;
+  ptr= fopen("hospital.dat","rb");
+  if(ptr!=NULL)
+  {
+	  fread(&reg,sizeof(reg),1,ptr);
+	  cout<<endl<<"nro_hospital\tdireccion\ttelefono\tfecharegistro\tnro_personal\n";
+	  while (feof(ptr)== false)
+	  {
+		  cout<<reg.nro_hospital<<"\t\t"<<reg.direccion<<"\t\t"<<reg.telefono<<"\t\t"<<reg.fecha_registro<<"\t\t"<<reg.nro_personal<<endl;
+		  fread(&reg,sizeof(reg),1,ptr);
+	  }
+	  fclose(ptr);
+  }
+  else
+  { cout<<"no existe el archivo";
+  fclose(ptr);
+  }
+}
