@@ -1,0 +1,1912 @@
+#include "stdafx.h"
+
+#include <iostream>
+#include "conio.h" 
+#include <string>
+
+using namespace std;
+
+struct usuario
+{
+	int cod_usuario;
+	string nombreUsuario;
+	string contrasena;
+	char  tipo;
+	//int edad;
+};
+
+struct producto
+{
+	int no_prod;
+	string descrip;
+	int cantidad;
+	float precio;
+	char garantia;
+};
+
+struct vendedor
+{
+	int idvend;
+	string nombre;
+	int telefono;
+	string email;
+};
+
+struct venta
+{
+	int idventa;
+	string fecha;
+	int idvendedor;
+	int idprod;
+	int cantidad;
+	int preciototal;
+};
+usuario Usuario;
+producto Producto;
+vendedor Vendedor;
+venta Venta;
+
+FILE*alias;
+
+
+
+//----------------------------------------------------------------
+//Funciones para leer datos
+//----------------------------------------------------------------
+string leerCadena(string mensajeMostrar)
+{
+	string cadena;
+
+	cout << endl << " " << mensajeMostrar << ": ";
+	getline(cin, cadena);
+
+	return cadena;
+}
+
+//para leer solo letras
+bool esLetra(char caracter)
+{
+	return (('a' <= caracter) && (caracter <= 'z') || ('A' <= caracter) && (caracter <= 'Z'));
+}
+bool esNombreValido(string nombre)
+{
+	bool esNombre = true;
+
+	for (int i = 0, longNombre = nombre.length(); (i < longNombre) && (esNombre); i++)
+	{
+		if (!esLetra(nombre[i]))
+		{
+			if (nombre[i] != ' ')
+			{
+				esNombre = false;
+			}
+		}
+	}
+	if(nombre.length() < 1)
+	{
+		esNombre = false;
+	}
+
+	return esNombre;
+}
+string leerNombre(string mensajeMostrar)
+{
+	string nombre;
+	bool esNombre;
+	do
+	{
+		nombre = leerCadena(mensajeMostrar);
+
+		esNombre = esNombreValido(nombre);
+
+		if (esNombre == false)
+		{
+			cout << endl << " >>> Error: El nombre no es valido." << endl;
+		}
+
+	} while (esNombre == false);
+
+	return nombre;
+}
+
+bool esContraseÒaValida(string contraseÒa)
+{
+	bool esContraseÒa = true;
+
+	for (int i = 0, longContraseÒa = contraseÒa.length(); (i < longContraseÒa) && (esContraseÒa); i++)
+	{
+		if (contraseÒa[i] == ' ')
+		{
+			esContraseÒa = false;
+		}
+	}
+	if(contraseÒa.length() < 4)
+	{
+		esContraseÒa = false;
+	}
+	return esContraseÒa;
+}
+string leerContraseÒa(string mensajeMostrar)
+{
+	string contraseÒa;
+	bool esContraseÒa;
+	do
+	{
+		contraseÒa = leerCadena(mensajeMostrar);
+
+		esContraseÒa = esContraseÒaValida(contraseÒa);
+
+		if (esContraseÒa == false)
+		{
+			cout << endl << " >>> Error: La constrasenha debe tener al menos 4 carateres sin espacios." << endl;
+		}
+
+	} while (esContraseÒa == false);
+
+	return contraseÒa;
+}
+
+
+//para leer solo numeros enteros
+bool esNumeroEntero(string numero)
+{
+	bool esNumero = true;
+
+	for (int i = 0, longNumero = numero.length(); (i < longNumero) && (esNumero == true); i++)
+	{
+		if ((numero[i] > '9') || (numero[i] < '0'))
+		{
+			esNumero = false;
+		}
+	}
+
+	return esNumero;
+}
+int leerNumeroEntero(string mensajeMostrar)
+{
+	string numero;
+	bool esNumero;
+	do
+	{
+		numero = leerCadena(mensajeMostrar);
+
+		esNumero = esNumeroEntero(numero);
+
+		if (esNumero == false)
+		{
+			cout << endl << " >>> Error: El numero entero no es valido." << endl;
+		}
+
+	} while (esNumero == false);
+
+	return  atoi(numero.c_str());
+}
+int leerNumeroEnteroPositivo(string mensajeMostrar)
+{
+	int numero;
+	do
+	{
+		numero = leerNumeroEntero(mensajeMostrar);
+
+		if (numero <= 0)
+		{
+			cout << endl << " >>> Error: El numero debe ser positivo." << endl;
+		}
+
+	} while (numero <= 0);
+
+	return numero;
+}
+
+//para leer solo numeros reales
+bool estaRepetido(string numero, char caracter)
+{
+	bool repetido = false;
+
+	int contador = 0;
+
+	for (int i = 0, longNumero = numero.length(); i < longNumero; i++)
+	{
+		if (numero[i] == caracter)
+		{
+			contador++;
+		}
+	}
+
+	if (contador > 1)
+	{
+		repetido = true;
+	}
+
+	return repetido;
+}
+bool esNumeroReal(string numero)
+{
+	bool esNumero = true;
+
+	int ini = 0;
+
+	if (numero[ini] == '-')
+	{
+		ini = 1;
+	}
+
+	for (int i = ini, longNumero = numero.length(); (i < longNumero) && (esNumero); i++)
+	{
+		if ((numero[i] > '9') || (numero[i] < '0'))
+		{
+			if (numero[i] != '.')
+			{
+				esNumero = false;
+			}
+			else if (estaRepetido(numero, '.'))
+			{
+				esNumero = false;
+			}
+		}
+	}
+
+	return esNumero;
+}
+float leerNumeroReal(string mensajeMostrar)
+{
+	string numero;
+	bool esNumero;
+	do
+	{
+		numero = leerCadena(mensajeMostrar);
+
+		esNumero = esNumeroReal(numero);
+
+		if (esNumero == false)
+		{
+			cout << endl << " >>> Error: El numero real no es valido. Usar '.' para decimales." << endl;
+		}
+
+	} while (esNumero == false);
+
+	return atof(numero.c_str());
+}
+float leerNumeroRealPositivo(string mensajeMostrar)
+{
+	float numero;
+	do
+	{
+		numero = leerNumeroReal(mensajeMostrar);
+
+		if (numero <= 0)
+		{
+			cout << endl << " >>> Error: El numero real debe ser positivo." << endl;
+		}
+
+	} while (numero <= 0);
+
+	return numero;
+}
+
+// para leer los valores S/N
+char leerSiNo(string mensajeMostrar)
+{
+	char valor = 'N';
+	do
+	{
+		valor = toupper(getchar());
+		if (valor != 'S' && valor != 'N')
+		{
+			cout << endl << " " << mensajeMostrar << " (S/N): ";
+		}
+
+	} while (valor != 'S' && valor != 'N');
+
+	return valor;
+}
+
+//para leer telefono
+int leerTelefono(string mensajeMostrar)
+{
+	int numero;
+	do
+	{
+		numero = leerNumeroEntero(mensajeMostrar);
+
+		if (numero <= 0)
+		{
+			cout << endl << " >>> Error: Debe ingresar un Telefono valido." << endl;
+		}
+
+	} while (numero <= 0);
+
+	return numero;
+}
+
+//para leer emails
+bool esEmailValido(string email)
+{
+	bool esEmail = false;
+
+	bool hayPunto = false;
+	for (int i = 0; (i < email.length()) && (!hayPunto); i++)
+	{
+		if (email[i] == '.')
+		{
+			hayPunto = true;
+		}
+	}
+
+	int cantidadArrobas = 0;
+	for (int i = 0; i < email.length(); i++)
+	{
+		if (email[i] == '@')
+		{
+			cantidadArrobas++;
+		}
+	}
+
+	if ((cantidadArrobas == 1) && hayPunto)
+	{
+		esEmail = true;
+	}
+
+	return esEmail;
+}
+string leerEmail(string mensajeMostrar)
+{
+	string email;
+
+	bool esEmail;
+	do
+	{
+		email = leerCadena(mensajeMostrar);
+
+		esEmail = esEmailValido(email);
+
+		if (esEmail == false)
+		{
+			cout << endl << " >>> Error: Debe ingresar un Email valido." << endl;
+		}
+
+	} while (esEmail == false);
+
+	return email;
+}
+
+//para leer fechas
+void fechaToInt(string fecha, int &dia, int &mes, int &anho)
+{
+	char charDia[2];
+	charDia[0] = fecha[0];
+	charDia[1] = fecha[1];
+
+	char charMes[2];
+	charMes[0] = fecha[3];
+	charMes[1] = fecha[4];
+
+	char charAnho[4];
+	charAnho[0] = fecha[6];
+	charAnho[1] = fecha[7];
+	charAnho[2] = fecha[8];
+	charAnho[3] = fecha[9];
+
+	dia = atoi(charDia);
+	mes = atoi(charMes);
+	anho = atoi(charAnho);
+}
+bool fechaValida(string fecha)
+{
+	bool vale = false;
+
+	if ((fecha.length() > 0) && (fecha.length() <= 10))
+	{
+		if ((fecha[2] == '/') || (fecha[5] == '/'))
+		{
+			int dia, mes, anho;
+
+			fechaToInt(fecha, dia, mes, anho);
+
+			if ((mes == 1) || (mes == 3) || (mes == 5) || (mes == 7) || (mes == 8) || (mes == 10) || (mes == 12))
+			{
+				if ((dia >= 1) && (dia <= 31))
+				{
+					vale = true;
+				}
+			}
+			if ((mes == 4) || (mes == 6) || (mes == 9) || (mes == 11))
+			{
+				if ((dia >= 1) && (dia <= 30))
+				{
+					vale = true;
+				}
+			}
+			else if (mes == 2)
+			{
+				if (anho % 4 == 0)
+				{
+					if ((dia >= 1) && (dia <= 29))
+					{
+						vale = true;
+					}
+				}
+				else
+				{
+					if ((dia >= 1) && (dia <= 28))
+					{
+						vale = true;
+					}
+				}
+			}
+		}
+	}
+	return vale;
+}
+string leerFecha(string mensajeMostrar)
+{
+	bool vale = false;
+	string fecha;
+	do
+	{
+		fecha = leerCadena(mensajeMostrar);
+
+		vale = fechaValida(fecha);
+
+		if (!vale)
+		{
+			cout << endl << " >>> Error: La fecha no es valida... Intente de nuevo con este formato: 01/01/2000" << endl;
+		}
+
+	} while (!vale);
+
+	return fecha;
+}
+
+bool fechaCompararMayor(string fecha_A, string fecha_B)
+{
+	bool valor = false;
+
+	int dia_A, mes_A, anho_A;
+	int dia_B, mes_B, anho_B;
+
+	fechaToInt(fecha_A, dia_A, mes_A, anho_A);
+	fechaToInt(fecha_B, dia_B, mes_B, anho_B);
+
+	if (anho_A > anho_B)
+	{
+		valor = true;
+	}
+	else if (anho_A == anho_B)
+	{
+		if (mes_A > mes_B)
+		{
+			valor = true;
+		}
+		else if (mes_A == mes_B)
+		{
+			if (dia_A > dia_B)
+			{
+				valor = true;
+			}
+		}
+	}
+
+	return valor;
+}
+void leerRangoDeFechas(string fechaInicio, string fechaFin)
+{
+	bool inicioMayorFin;
+	do
+	{
+		fechaInicio = leerFecha("Fecha Inicial");
+		fechaFin = leerFecha("Fecha Final");
+
+		inicioMayorFin = fechaCompararMayor(fechaInicio, fechaFin);
+
+		if (inicioMayorFin)
+		{
+			cout << endl << " >>> Error: La fecha Inicial debe ser anterior o igual a la fecha Final." << endl;
+		}
+
+	} while (inicioMayorFin);
+}
+
+bool fechaCompMayorIgual(string fecha_A, string fecha_B)
+{
+	bool valor = false;
+
+	int dia_A, mes_A, anho_A;
+	int dia_B, mes_B, anho_B;
+
+	fechaToInt(fecha_A, dia_A, mes_A, anho_A);
+	fechaToInt(fecha_B, dia_B, mes_B, anho_B);
+
+	if (anho_A > anho_B)
+	{
+		valor = true;
+	}
+	else if (anho_A == anho_B)
+	{
+		if (mes_A > mes_B)
+		{
+			valor = true;
+		}
+		else if (mes_A == mes_B)
+		{
+			if (dia_A >= dia_B)
+			{
+				valor = true;
+			}
+		}
+	}
+
+	return valor;
+}
+bool fechaCompMenorIgual(string fecha_A, string fecha_B)
+{
+	bool valor = false;
+
+	int dia_A, mes_A, anho_A;
+	int dia_B, mes_B, anho_B;
+
+	fechaToInt(fecha_A, dia_A, mes_A, anho_A);
+	fechaToInt(fecha_B, dia_B, mes_B, anho_B);
+
+	if (anho_A < anho_B)
+	{
+		valor = true;
+	}
+	else if (anho_A == anho_B)
+	{
+		if (mes_A < mes_B)
+		{
+			valor = true;
+		}
+		else if (mes_A == mes_B)
+		{
+			if (dia_A <= dia_B)
+			{
+				valor = true;
+			}
+		}
+	}
+
+	return valor;
+}
+bool fechaEstaEnRango(string fecha, string fecha_ini, string fecha_fin)
+{
+	bool valor = false;
+
+	if (fechaCompMayorIgual(fecha, fecha_ini) && fechaCompMenorIgual(fecha, fecha_fin))
+	{
+		valor = true;
+	}
+	else if (fechaCompMayorIgual(fecha, fecha_fin) && fechaCompMenorIgual(fecha, fecha_ini))
+	{
+		valor = true;
+	}
+
+	return valor;
+}
+
+string obtenerNombreMes(int mes)
+{
+	switch (mes)
+	{
+	case 1:
+		return "Enero";
+
+	case 2:
+		return "Febrero";
+
+	case 3:
+		return "Marzo";
+
+	case 4:
+		return "Abril";
+
+	case 5:
+		return "Mayo";
+
+	case 6:
+		return "Junio";
+
+	case 7:
+		return "Julio";
+
+	case 8:
+		return "Agosto";
+
+	case 9:
+		return "Septiembre";
+
+	case 10:
+		return "Octubre";
+
+	case 11:
+		return "Noviembre";
+
+	case 12:
+		return "Diciembre";
+	};
+}
+//----------------------------------------------------------------
+
+bool existeNroProducto(int no_prod)
+{
+	bool encontro = false;
+
+	FILE *ptr = fopen("PRODUCTO.SEC", "rb");
+	if (ptr != NULL)
+	{
+		producto aux;
+		fread(&aux, sizeof(aux), 1, ptr);
+
+		while (!feof(ptr) && !encontro)
+		{
+			if (aux.no_prod == no_prod)
+			{
+				encontro = true;
+			}
+			fread(&aux, sizeof(aux), 1, ptr);
+		}
+
+		fclose(ptr);
+	}
+
+	return encontro;
+}
+bool ALTA_SECUENCIAL_PRODUCTO()
+{
+	cout << "\n\n\n\rALTA DE REGISTRO DE PRODUCTOS\n\n";
+
+	//lectura de datos desde pantalla
+	Producto.no_prod = leerNumeroEnteroPositivo("Numero de producto");
+	if (existeNroProducto(Producto.no_prod))
+	{
+		cout << "\n\n\n\r >>> Producto ya existe!!! \n";
+		return false;
+	}
+	Producto.descrip = leerCadena("Descripcion");
+	Producto.cantidad = leerNumeroEnteroPositivo("Cantidad");
+	Producto.precio = leerNumeroRealPositivo("Precio");
+	Producto.garantia = leerSiNo("Garantia");
+
+	//escritura de datos en el archivo
+	alias = fopen("PRODUCTO.SEC", "ab");
+	if (alias == NULL)
+	{
+		alias = fopen("PRODUCTO.SEC", "wb");
+	}
+
+	fwrite(&Producto, sizeof(Producto), 1, alias);
+	fclose(alias);
+
+	cout << "\n\n\n\rProducto registrado !!!";
+
+	return true;
+}
+float obtenerPrecio(int idProducto)
+{
+	producto aux;
+
+	FILE *ptr = fopen("PRODUCTO.SEC", "rb");
+	if (ptr != NULL)
+	{
+		fread(&aux, sizeof(aux), 1, ptr);
+
+		while (!feof(ptr))
+		{
+			if (aux.no_prod == idProducto)
+			{
+				fclose(ptr);
+				return aux.precio;
+			}
+			fread(&aux, sizeof(aux), 1, ptr);
+		}
+
+		fclose(ptr);
+	}
+
+	return 0;
+}
+
+void descontarStock(venta Venta)
+{
+	int no_prod;
+	int pos;
+
+	alias = fopen("PRODUCTO.SEC", "rb");
+
+	if (alias == NULL)
+	{
+		cout << "\n\n\n\rNo existe el archivo !!!";
+		cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+		getchar();
+		return;
+	}
+
+	no_prod = Venta.idprod;
+	pos = 0;
+	fread(&Producto, sizeof(Producto), 1, alias);
+
+	while (!feof(alias))
+	{
+		if (Producto.no_prod == no_prod)
+		{
+			fclose(alias);
+			alias = fopen("PRODUCTO.SEC", "rb+");
+			fseek(alias, pos*sizeof(Producto), SEEK_SET);
+			Producto.cantidad = Producto.cantidad - Venta.cantidad;
+			fwrite(&Producto, sizeof(Producto), 1, alias);
+			fclose(alias);
+			cout << "\n\r<<< Stock Actualizado";
+			getchar();
+			return;
+		}
+		fread(&Producto, sizeof(Producto), 1, alias);
+		pos++;
+	}
+	cout << "\n\rNo se encuentra ese Producto !!!";
+	fclose(alias);
+	cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+	getchar();
+}
+
+
+bool existeIdVendedor(int idBuscado)
+{
+	bool encontro = false;
+
+	FILE *ptr = fopen("VENDEDOR.SEC", "rb");
+	if (ptr != NULL)
+	{
+		vendedor aux;
+		fread(&aux, sizeof(aux), 1, ptr);
+
+		while (!feof(ptr) && !encontro)
+		{
+			if (aux.idvend == idBuscado)
+			{
+				encontro = true;
+			}
+			fread(&aux, sizeof(aux), 1, ptr);
+		}
+
+		fclose(ptr);
+	}
+
+	return encontro;
+}
+bool ALTA_SECUENCIAL_VENDEDOR()
+{
+	cout << "\n\n\n\rALTAS DE Registro de VENDEDOR";
+
+	//lectura de datos desde pantalla
+	Vendedor.idvend = leerNumeroEnteroPositivo("Id Vendedor");
+	if (existeIdVendedor(Vendedor.idvend))
+	{
+		cout << "\n\n\n\r Vendedor ya existe!!! \n";
+		return false;
+	}
+	Vendedor.nombre = leerNombre("Nombre");
+	Vendedor.telefono = leerTelefono("Telefono");
+	Vendedor.email = leerEmail("Email");
+
+	//escritura de datos en el archivo
+	alias = fopen("VENDEDOR.SEC", "ab");
+	if (alias == NULL)
+	{
+		alias = fopen("VENDEDOR.SEC", "wb");
+	}
+
+	fwrite(&Vendedor, sizeof(Vendedor), 1, alias);
+	fclose(alias);
+
+	cout << "\n\n\n\Vendedor registrado !!!";
+
+	return true;
+}
+
+
+bool existeIdVenta(int idBuscado)
+{
+	bool encontro = false;
+	FILE*ptr;
+	ptr = fopen("VENTA.SEC", "rb");
+	if (ptr != NULL)
+	{
+		venta aux;
+		fread(&aux, sizeof(aux), 1, ptr);
+
+		while (!feof(ptr))
+		{
+			if (aux.idventa == idBuscado)
+			{
+				encontro = true;
+			}
+			fread(&aux, sizeof(aux), 1, ptr);
+		}
+
+		fclose(ptr);
+	}
+
+	return encontro;
+}
+bool ALTA_SECUENCIAL_VENTA()
+{
+	cout << "\n\n\n\rALTA DE REGISTRO DE VENTA";
+
+	//lectura de datos desde pantalla
+	Venta.idventa = leerNumeroEntero("Id Venta");
+	if (existeIdVenta(Venta.idventa))
+	{
+		cout << "\n\n\n\r Venta ya existe!!! \n";
+		return false;
+	}
+
+	Venta.idvendedor = leerNumeroEnteroPositivo("Id Vendedor");
+	while (existeIdVendedor(Venta.idvendedor) == false)
+	{
+		cout << "\n\n >>> Error: El vendedor no existe!!! \n";
+		Venta.idvendedor = leerNumeroEnteroPositivo("Id Vendedor");
+	}
+
+	Venta.idprod = leerNumeroEnteroPositivo("Id Producto");
+	while (existeNroProducto(Venta.idprod) == false)
+	{
+		cout << "\n\n >>> Error: El producto no existe!!! \n";
+		Venta.idprod = leerNumeroEnteroPositivo("Id Producto");
+	}
+
+	Venta.fecha = leerFecha("Fecha");
+	Venta.cantidad = leerNumeroEnteroPositivo("Cantidad");
+
+	float precio = obtenerPrecio(Venta.idprod);
+	Venta.preciototal = (precio * Venta.cantidad);
+	cout << "\n\rPrecio Total : " << Venta.preciototal;
+
+	//escritura de datos en el archivo
+	alias = fopen("VENTA.SEC", "ab");
+	if (alias == NULL)
+	{
+		alias = fopen("VENTA.SEC", "wb");
+	}
+	fwrite(&Venta, sizeof(Venta), 1, alias);
+	fclose(alias);
+	descontarStock(Venta);
+
+	cout << "\n\n\n\Venta registrada !!!";
+
+	return true;
+}
+
+void LISTADO_SECUENCIAL_PRODUCTO(void)
+{
+	cout << "\n\r   << LISTADO DE REGISTRO DE PRODUCTOS >>\n";
+	alias = fopen("PRODUCTO.SEC", "rb");
+	if (alias == NULL)
+	{
+		cout << "\n\n\n\r No existe el archivo !!!";
+		cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+		return;
+	}
+	cout << "\n\r------------------------------------------------------------------------ ";
+	cout << "\n\r NroProd Descripcion Cantidad Precio ";
+	cout << "\n\r------------------------------------------------------------------------ \n";
+	fread(&Producto, sizeof(Producto), 1, alias);
+	while (!feof(alias))
+	{
+		if(Producto.no_prod>0)
+		{
+			cout << Producto.no_prod << "     " << Producto.descrip << "    " << Producto.cantidad << " " << Producto.precio << "    " << "\n";
+		}
+		fread(&Producto, sizeof(Producto), 1, alias);
+	}
+	fclose(alias);
+	cout << "\n\r------------------------------------------------------------------------";
+	cout << "\n\rFin del listado !!!";
+	return;
+}
+
+void LISTADO_SECUENCIAL_VENTA(void)
+{
+	cout << "\n\r   << LISTADO DE REGISTRO DE VENTAS >>\n";
+	alias = fopen("VENTA.SEC", "rb");
+
+	if (alias == NULL)
+	{
+		cout << "\n\n\n\r No existe el archivo !!!";
+		cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+		return;
+	}
+	cout << "\n\r------------------------------------------------------------------------ ";
+	cout << "\n\r IdVenta  Fecha    CodVendedor IdProducto Cantidad PrecioTotal/Bs";
+	cout << "\n\r------------------------------------------------------------------------ \n";
+	fread(&Venta, sizeof(Venta), 1, alias);
+
+	while (!feof(alias))
+	{
+		if(Venta.idventa >0)
+		{
+			cout << Venta.idventa << "    " << Venta.fecha << "  " << Venta.idvendedor << "   " << Venta.idprod << "         " << Venta.cantidad << "        " << Venta.preciototal << "\n";
+		}
+		fread(&Venta, sizeof(Venta), 1, alias);
+	}
+	fclose(alias);
+	cout << "\n\r------------------------------------------------------------------------";
+	cout << "\n\rFin del listado !!!";
+	return;
+}
+
+void LISTADO_SECUENCIAL_VENTA_MOSTRANDO_NOMBRES(void)
+{
+	cout << "\n\r   << LISTADO DE REGISTRO DE VENTAS >>\n";
+	alias = fopen("VENTA.SEC", "rb");
+
+	if (alias == NULL)
+	{
+		cout << "\n\n\n\r No existe el archivo !!!";
+		cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+		return;
+	}
+	cout << "\n\r------------------------------------------------------------------------ ";
+	cout << "\n\r IdVenta  Fecha    CodVendedor IdProducto Cantidad PrecioTotal/Bs";
+	cout << "\n\r------------------------------------------------------------------------ \n";
+	fread(&Venta, sizeof(Venta), 1, alias);
+
+	while (!feof(alias))
+	{
+		if(Venta.idventa >0)
+		{
+			cout << Venta.idventa << "    " ;
+			cout << Venta.fecha << "  ";
+			cout << Venta.idvendedor << "   " ;
+			//MostrarNombreVendedor(Venta.idvendedor);
+			cout << Venta.idprod << "         " ;
+			//MostrarNombreProducto(Venta.idprod);
+			cout << Venta.cantidad << "        " ;
+			cout << Venta.preciototal << "\n";
+		}
+		fread(&Venta, sizeof(Venta), 1, alias);
+	}
+	fclose(alias);
+	cout << "\n\r------------------------------------------------------------------------";
+	cout << "\n\rFin del listado !!!";
+	return;
+}
+
+void LISTADO_SECUENCIAL_VENDEDOR(void)
+{
+	cout << "\n\r   << LISTADO DE REGISTRO DE VENDEDOR >>\n";
+	alias = fopen("VENDEDOR.SEC", "rb");
+	if (alias == NULL)
+	{
+		cout << "\n\n\n\r No existe el archivo !!!";
+		cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+		return;
+	}
+	cout << "\n\r------------------------------------------------------------------------ ";
+	cout << "\n\rIdVendedor   Nombre    Telefono    Email ";
+	cout << "\n\r------------------------------------------------------------------------ \n";
+	fread(&Vendedor, sizeof(Vendedor), 1, alias);
+
+	while (!feof(alias))
+	{
+		if(Vendedor.idvend > 0)
+		{
+			cout << Vendedor.idvend << "          " << Vendedor.nombre << "  " << Vendedor.telefono << "     " << Vendedor.email << "    \n";
+		}
+		fread(&Vendedor, sizeof(Vendedor), 1, alias);
+	}
+	fclose(alias);
+	cout << "\n\r------------------------------------------------------------------------";
+	cout << "\n\rFin del listado !!!";
+	return;
+}
+
+void BAJA_LOGICA_SECUENCIAL_PRODUCTO(void)
+{
+	int no_prod;
+	char op;
+	cout << "\n\rBAJAS LOGICAS DE REGISTROS DE PRODUCTOS";
+	alias = fopen("PRODUCTO.SEC", "rb+");
+
+	if (alias == NULL)
+	{
+		cout << "\n\n\n\rNo existe el archivo !!!";
+		cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+		getchar();
+		return;
+	}
+	//cout << "\n\n\n\rNumero de producto: "; cin >> no_prod;
+	no_prod = leerNumeroEnteroPositivo("\n\n\n\rNumero de producto: ");
+	fread(&Producto, sizeof(Producto), 1, alias);
+	while (!feof(alias))
+	{
+		if (Producto.no_prod == no_prod)
+		{
+			cout << "\n\rNo Prod Descripcion Cantidad Precio Garantia";
+			cout << "\n\r------------------------------------------------------------------------";
+			cout << "  " << no_prod << "          " << Producto.descrip << "         " << Producto.cantidad << "         " << Producto.precio << "\n";
+			Producto.no_prod = 0;
+			Producto.descrip = "";
+			Producto.cantidad = 0;
+			Producto.precio = 0.0;
+			Producto.garantia = ' ';
+			do {
+				op = toupper(getchar());
+				if (op != 'S' && op != 'N')
+					cout << "\n\n\rEsta seguro que desea borrarlo? [S/N] ---> ";
+			} while (op != 'S' && op != 'N');
+			if (op == 'S')
+			{
+				fseek(alias, (-1) * sizeof(Producto), SEEK_CUR);
+				fwrite(&Producto, sizeof(Producto), 1, alias);
+				cout << "\n\n\n\rProducto eliminado !!!";
+			}
+			fclose(alias);
+			cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+			getchar();
+			return;
+		}
+		fread(&Producto, sizeof(Producto), 1, alias);
+	}
+	cout << "\n\rNo se encuentra ese Producto !!!";
+	fclose(alias);
+	cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+	getchar();
+	return;
+}
+
+void BAJA_LOGICA_SECUENCIAL_VENDEDOR(void)
+{
+	int no_vend;
+	char op;
+	cout << "\n\rBAJAS LOGICAS DE REGISTROS DE VENDEDORES/OPERADORES";
+	alias = fopen("VENDEDOR.SEC", "rb+");
+	if (alias == NULL)
+	{
+		cout << "\n\n\n\rNo existe el archivo !!!";
+		cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+		getchar();
+		return;
+	}
+	//cout << "\n\n\n\Codigo de Vendedor: "; cin >> no_vend;
+	no_vend = leerNumeroEnteroPositivo("\n\n\n\Codigo de Vendedor: ");
+	fread(&Vendedor, sizeof(Vendedor), 1, alias);
+	while (!feof(alias))
+	{
+		if (Vendedor.idvend == no_vend)
+		{
+			cout << "\n\rIdVendedor Nombre Telefono Email";
+			cout << "\n\r------------------------------------------------------------------------";
+			Vendedor.idvend = 0;
+			Vendedor.nombre = "";
+			Vendedor.telefono = 0;
+			Vendedor.email = "";
+			do {
+				op = toupper(getchar());
+				if (op != 'S' && op != 'N')
+					cout << "\n\n\rEsta seguro que desea borrarlo? [S/N] ---> ";
+			} while (op != 'S' && op != 'N');
+			if (op == 'S')
+			{
+				fseek(alias, ftell(alias) - sizeof(Vendedor), SEEK_SET);
+				fwrite(&Vendedor, sizeof(Vendedor), 1, alias);
+				cout << "\n\n\n\Vendedor eliminado !!!";
+			}
+			fclose(alias);
+			cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+			getchar();
+			return;
+		}
+		fread(&Vendedor, sizeof(Vendedor), 1, alias);
+	}
+	cout << "\n\rNo se encuentra ese Vendedor !!!";
+	fclose(alias);
+	cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+	getchar();
+	return;
+}
+
+void BUSCAR_VENDEDOR(void)
+{
+	int no_prod;
+	cout << "\n\r BUSCAR VENDEDOR";
+	alias = fopen("VENDEDOR.SEC", "rb+");
+	if (alias == NULL)
+	{
+		cout << "\n\n\n\rNo existe el archivo !!!";
+		cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+		getchar();
+		return;
+	}
+	//cout << "\n\n\n\r Codigo de Vendedor: "; cin >> no_prod;
+	no_prod = leerNumeroEnteroPositivo("\n\n\n\r Codigo de Vendedor: ");
+	fread(&Vendedor, sizeof(Vendedor), 1, alias);
+	while (!feof(alias)) {
+
+		if (Vendedor.idvend == no_prod)
+		{
+			cout << "\n\rCodVendedor  Nombre  Telefono    Email  ";
+			cout << "\n\r------------------------------------------------------------------------" << endl;
+			cout << "  " << no_prod << "          " << Vendedor.nombre << "    " << Vendedor.telefono << "    " << Vendedor.email << "\n";
+
+			fclose(alias);
+			cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+			getchar();
+			return;
+		}
+		fread(&Vendedor, sizeof(Vendedor), 1, alias);
+	}
+	cout << "\n\rNo se encuentra ese Producto !!!";
+	fclose(alias);
+	cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+	getchar();
+	return;
+}
+
+void MostrarNombreVendedor(int idbusc)
+{
+	int no_prod;
+	alias = fopen("VENDEDOR.SEC", "rb+");
+	if (alias == NULL)
+	{
+		getchar();
+		return;
+	}
+	//cout << "\n\n\n\r Codigo de Vendedor: "; cin >> no_prod;
+	no_prod = idbusc;
+	fread(&Vendedor, sizeof(Vendedor), 1, alias);
+	while (!feof(alias)) {
+
+		if (Vendedor.idvend == no_prod)
+		{
+			//cout << "\n\rCodVendedor  Nombre  Telefono    Email  ";
+			//cout << "\n\r------------------------------------------------------------------------" << endl;
+			//cout << "  " << no_prod << "          " << Vendedor.nombre << "    " << Vendedor.telefono << "    " << Vendedor.email << "\n";
+			cout << Vendedor.nombre << "  ";
+			fclose(alias);
+			//cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+			getchar();
+			return;
+		}
+		fread(&Vendedor, sizeof(Vendedor), 1, alias);
+	}
+	//cout << "\n\rNo se encuentra ese Producto !!!";
+	fclose(alias);
+	//cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+	getchar();
+	return;
+}
+void BUSCAR_PRODUCTO(void)
+{
+	int no_prod;
+	char op;
+	cout << "\n\r BUSCAR PRODUCTO";
+	alias = fopen("PRODUCTO.SEC", "rb+");
+	if (alias == NULL)
+	{
+		cout << "\n\n\n\rNo existe el archivo !!!";
+		cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+		getchar();
+		return;
+	}
+	//cout << "\n\n\n\r Numero de producto: "; cin >> no_prod;
+	no_prod = leerNumeroEnteroPositivo("\n\n\n\r Numero de producto: ");
+	fread(&Producto, sizeof(Producto), 1, alias);
+
+	while (!feof(alias))
+	{
+		if (Producto.no_prod == no_prod)
+		{
+			cout << "\n\rNroProducto  Descripcion  Cantidad  Precio  ";
+			cout << "\n\r------------------------------------------------------------------------" << endl;
+			cout << "  " << no_prod << "          " << Producto.descrip << "         " << Producto.cantidad << "         " << Producto.precio << "\n";
+
+			fclose(alias);
+			cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+			getchar();
+			return;
+		}
+		fread(&Producto, sizeof(Producto), 1, alias);
+	}
+	cout << "\n\rNo se encuentra ese Producto !!!";
+	fclose(alias);
+	cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+	getchar();
+	return;
+}
+
+void BUSCAR_VENTA(void)
+{
+	int no_venta;
+	char op;
+	cout << "\n\r BUSCAR VENTA";
+	alias = fopen("VENTA.SEC", "rb+");
+	if (alias == NULL)
+	{
+		cout << "\n\n\n\rNo existe el archivo !!!";
+		cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+		getchar();
+		return;
+	}
+	//cout << "\n\n\n\r Codido de Venta : "; cin >> no_venta;
+	no_venta = leerNumeroEnteroPositivo("\n\n\n\r Codido de Venta : ");
+	fread(&Venta, sizeof(Venta), 1, alias);
+	while (!feof(alias))
+	{
+		if (Venta.idventa == no_venta)
+		{
+			cout << "\n\rIdVenta   Fecha     CodVendedor  CodProduc   Cantidad  PrecioTotal/Bs  ";
+			cout << "\n\r------------------------------------------------------------------------" << endl;
+			cout << "  " << no_venta << "     " << Venta.fecha << "    " << Venta.idvendedor << "       " << Venta.idprod << "          " << Venta.cantidad << "          " << Venta.preciototal << "\n";
+
+			fclose(alias);
+			cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+			getchar();
+			return;
+		}
+		fread(&Venta, sizeof(Venta), 1, alias);
+	}
+	cout << "\n\rNo se encuentra esa Venta !!!";
+	fclose(alias);
+	cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+	getchar();
+	return;
+}
+
+int contarmeses(string menor, string mayor)
+{
+	int anhos, meses;
+	int dia_A, mes_A, anho_A;
+	int dia_B, mes_B, anho_B;
+
+	fechaToInt(menor, dia_A, mes_A, anho_A);
+	fechaToInt(mayor, dia_B, mes_B, anho_B);
+	anhos = anho_B - anho_A;
+	meses = mes_B - mes_A;
+
+	return anhos*12 + meses;
+}
+
+void PrediccionVenta()
+{
+	cout << "\n\r   << PREDICCION DE VENTAS >>\n";
+	alias = fopen("VENTA.SEC", "rb");
+	
+	if (alias == NULL)
+	{
+		cout << "\n\n\n\r No existe el archivo !!!";
+		cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+		return;
+	}
+	cout << "\n\r------------------------------------------------------------------------ ";
+	cout << "\n\r	Mes		Total(Bs)";
+	cout << "\n\r------------------------------------------------------------------------ \n";
+	fread(&Venta, sizeof(Venta), 1, alias);
+	string fechamayor = Venta.fecha;
+	string fechamenor = Venta.fecha;
+	float total = 0;
+	float prom;
+	while (!feof(alias))
+	{
+		if(Venta.idventa >0)
+		{
+			total += Venta.preciototal;
+			if(fechaCompMenorIgual(fechamayor,Venta.fecha))
+			{
+				fechamayor = Venta.fecha;
+			}
+			if(fechaCompMenorIgual(Venta.fecha,fechamenor))
+			{
+				fechamenor = Venta.fecha;
+			}
+		}
+		fread(&Venta, sizeof(Venta), 1, alias);
+	}
+
+	fclose(alias);
+
+	prom = total/contarmeses(fechamenor,fechamayor);
+
+	cout << "\n\r	Mes1	" << prom * 1.1;
+	cout << "\n\r	Mes2	" << prom * 1.2;
+	cout << "\n\r	Mes3	" << prom * 1.3;
+
+	cout << "\n\r------------------------------------------------------------------------";
+	cout << "\n\rFin del listado !!!";
+	return;
+}
+
+void menuVendedorAgregar()
+{
+	int opc;
+	do
+	{
+		system("cls");
+		cout << " \n ||>   ILUCRON SRL  <||" << endl << endl;
+		cout << "    AGREGAR \n" << endl;
+		cout << " 1.- VENTA" << endl;
+		cout << " 0.- VOLVER AL MENU ANTERIOR" << endl;
+		cout << " Elija la opcion:\n ";
+		opc = getch();
+		switch (opc)
+		{
+		case '1':
+		{
+					if (ALTA_SECUENCIAL_VENTA())
+					{
+						cout << "Inserto Corectamente \n";
+					}
+					else
+					{
+						cout << "No se Inserto \n";
+					}
+					system("pause");
+		}; break;
+		}
+	} while (opc != '0');
+}
+void menuAdministradorListar()
+{
+	int opc;
+	do
+	{
+		system("cls");
+		cout << " \n ||>   ILUCRON SRL  <||" << endl << endl;
+		cout << "    LISTADO \n" << endl;
+		cout << " 1.- PRODUCTO" << endl;
+		cout << " 2.- VENTA" << endl;
+		cout << " 3.- VENDEDOR" << endl;
+		cout << " 0.- VOLVER AL MENU ANTERIOR" << endl;
+		cout << " Elija la opcion: \n";
+		opc = getch();
+		switch (opc)
+		{
+		case '1':
+		{
+					LISTADO_SECUENCIAL_PRODUCTO();
+					system("pause");
+		}; break;
+
+		case '2':
+		{
+					LISTADO_SECUENCIAL_VENTA();
+					system("pause");
+		}; break;
+
+		case '3':
+		{
+					LISTADO_SECUENCIAL_VENDEDOR();
+					system("pause");
+		}; break;
+		}
+	} while (opc != '0');
+}
+
+void menuVendedorListar()
+{
+	int opc;
+	do
+	{
+		system("cls");
+		cout << " \n ||>   ILUCRON SRL  <||" << endl << endl;
+		cout << "    LISTADO \n" << endl;
+		cout << " 1.- PRODUCTO" << endl;
+		cout << " 2.- VENTA" << endl;
+		cout << " 0.- VOLVER AL MENU ANTERIOR" << endl;
+		cout << " Elija la opcion: \n";
+		opc = getch();
+		switch (opc)
+		{
+		case '1':
+		{
+					LISTADO_SECUENCIAL_PRODUCTO();
+					system("pause");
+		}; break;
+
+		case '2':
+		{
+					LISTADO_SECUENCIAL_VENTA();
+					system("pause");
+		}; break;
+		}
+	} while (opc != '0');
+}
+
+void menuBuscar()
+{
+	int opc;
+	do
+	{
+		system("cls");
+		cout << " \n ||>   ILUCRON SRL  <||" << endl << endl;
+		cout << "    BUSCAR \n" << endl;
+		cout << " 1.- PRODUCTO" << endl;
+		cout << " 2.- VENTA" << endl;
+		cout << " 0.- VOLVER AL MENU ANTERIOR" << endl;
+		cout << " Elija la opcion: \n";
+		opc = getch();
+		switch (opc)
+		{
+		case '1':
+		{
+					BUSCAR_PRODUCTO();
+					system("pause");
+		}; break;
+
+		case '2':
+		{
+					BUSCAR_VENTA();
+					system("pause");
+		}; break;
+		}
+	} while (opc != '0');
+}
+void menuagregar()
+{
+	int opc;
+	do
+	{
+		system("cls");
+		cout << " \n ||>   ILUCRON SRL  <||" << endl << endl;
+		cout << "     - AGREGAR -\n" << endl;
+		cout << " 1.- PRODUCTO" << endl;
+		cout << " 2.- VENDEDOR" << endl;
+		cout << " 3.- VENTA" << endl;
+		cout << " 0.- VOLVER AL MENU ANTERIOR" << endl;
+		cout << " Elija la opcion: \n";
+		opc = getch();
+		switch (opc)
+		{
+		case '1':
+		{
+					if (ALTA_SECUENCIAL_PRODUCTO())
+					{
+						cout << "Inserto Corectamente \n";
+					}
+					else
+					{
+						cout << "No se Inserto \n";
+					}
+					system("pause");
+					break;
+		}; break;
+
+		case '2':
+		{
+					if (ALTA_SECUENCIAL_VENDEDOR())
+					{
+						cout << "Inserto Corectamente \n";
+					}
+					else
+					{
+						cout << "No se Inserto \n";
+					}
+					system("pause");
+		}; break;
+
+		case '3':
+		{
+					if (ALTA_SECUENCIAL_VENTA())
+					{
+						cout << "Inserto Corectamente \n";
+					}
+					else
+					{
+						cout << "No se Inserto \n";
+					}
+					system("pause");
+		}; break;
+
+		}
+	} while (opc != '0');
+}
+
+void menuBorrar()
+{
+	int opc;
+	do
+	{
+		system("cls");
+		cout << " \n ||>   ILUCRON SRL  <||" << endl << endl;
+		cout << "     - BORRAR -\n" << endl;
+		cout << " 1.- PRODUCTO" << endl;
+		cout << " 2.- VENDEDOR" << endl;
+		cout << " 0.- VOLVER AL MENU ANTERIOR" << endl;
+		cout << " Elija la opcion: \n";
+		opc = getch();
+		switch (opc)
+		{
+		case '1':
+		{
+					BAJA_LOGICA_SECUENCIAL_PRODUCTO();
+					system("pause");
+		}; break;
+
+		case '2':
+		{
+					BAJA_LOGICA_SECUENCIAL_VENDEDOR();
+					system("pause");
+		}; break;
+		}
+	} while (opc != '0');
+}
+
+void menuInformacion()
+{
+	int opc;
+
+	do
+	{
+		system("cls");
+		cout << " \n ||>   ILUCRON SRL  <||" << endl << endl;
+		cout << "  CLIENTE\n " << endl;
+		cout << "--LAMPARAS-- INFORMACION " << endl << endl;
+		cout << " 1.- PANTALLAS DE CRISTAL" << endl;
+		cout << " 2.- PANTALLAS DE COMEDOR" << endl;
+		cout << " 3.- POSTES DE JARDIN" << endl;
+		cout << " 4.- PLAFON LED" << endl;
+		cout << " 5.- EMBUTIDO DE AHORRO DE ENERGIA" << endl;
+		cout << " 6.- EMBUTIDO DICROICO" << endl;
+		cout << " 7.- EMBUTIDO DE PISO" << endl;
+		cout << " 8.- FOCOS LED" << endl;
+		cout << " 9.- TUBOS FLUORESCENTES" << endl;
+		cout << " 0.- VOLVER" << endl;
+
+		cout << "Elija la opcion: \n";
+		opc = getch();
+		switch (opc)
+		{
+		case '1':
+		{
+					cout << "\n  --PANTALLAS DE CRISTAL--" << endl;
+					cout << "\n Una pantalla de cristal liquido o LCD es una pantalla delgada y plana formada   por un numero de pixeles en color o monocromos colocados delante de una fuente de luz o reflectora. A menudo se utiliza en dispositivos electronicos de pilas, ya que utiliza cantidades muy pequeÒas de energia electrica." << endl;
+					getch();
+		}break;
+
+		case '2':
+		{
+					cout << "\n--PANTALLAS PARA COMEDOR--" << endl;
+					cout << "Una iluminacion de cocina requiere un planteamiento inicial estudiado. La \ndireccion de la luz, su angulo de incidencia,la intensidad y el color son \nfundamentales a la hora de elegir su lampara, puesto que una cocina difiere \nen gran medida del resto de estancias de la vivienda por su distribucion,\n materiales, altura del techo.\n" << endl;
+					getch();
+		}break;
+
+		case '3':
+		{
+					cout << "\n--POSTE DE JARDIN--" << endl;
+					cout << " \nLas luces de exteriores ofrecen seguridad y decoracion para parques y jardines. Las luces solares de jardin son pequeÒas, se encuentran al nivel del suelo,\n se alimentan del sol y se entierran en el suelo a lo largo de senderos o \nlugares que requieren iluminaciÛn. Son un modo practico y simple de \ncontar con iluminaciÛn nocturna en un patio o jardin. No requieren cables \nexternos ni enchufes cercanos y funcionan por su cuenta" << endl;
+					getch();
+		}break;
+
+		case '4':
+		{
+					cout << "\n--PLAFON LED--\n" << endl;
+					cout << "\n Lampara plana traslucida que se coloca pegada al techo o a una pared y que \nsirve para ocultar una bombilla y difuminar su luz. " << endl;
+					getch();
+		}break;
+
+		case '5':
+		{
+					cout << "\n--EMBUTIDO DE AHORRO DE ENERGIA--\n" << endl;
+					cout << "son adecuadas para aplicaciones de iluminacion general, tanto comercial como \ndomestica. con cuerpo contruido en aluminio de alta calidad proporsiona una luz intensa con multitud de posibilidades para la iluminacion.  " << endl;
+					getch();
+		}break;
+
+		case '6':
+		{
+					cout << "\n--EMBUTIDO DICROICO--\n" << endl;
+					cout << "son adecuadas para aplicaciones de iluminacion general, tanto comercial como \ndomestica. con cuerpo contruido en aluminio de alta calidad proporsiona una luz intensa con multitud de posibilidades para la iluminacion. " << endl;
+					
+					getch();
+		}break;
+
+		case '7':
+		{
+					cout << "\n--EMBUTIDO DE PISO--" << endl;
+					cout << "son adecuadas para aplicaciones de iluminacion general, tanto comercial como \ndomestica. con cuerpo contruido en aluminio de alta calidad proporsiona una luz intensa con multitud de posibilidades para la iluminacion.  " << endl;
+					getch();
+		}break;
+
+		case '8':
+		{
+					cout << "\n--FOCOS LED--" << endl;
+					cout << "Son elementos electronicos solida que permiten generar una gran cantidad de \nluminocidad basada en consumo minimo y un gran ahorro de enrgia electrica." << endl;
+					getch();
+		}break;
+
+		case '9':
+		{
+					cout << "\n--TUBO FLUORESCENTE--" << endl;
+					cout << " provee una ahorro energetico diez porciento mas que el tubo convencional t12 y un rendimiento aluminico mayor." << endl;
+					
+					getch();
+		}break;
+		}
+	} while (opc != '0');
+}
+
+int menuInicial()
+{
+	int opc;
+	system("cls");
+	cout << " \n ||>   ILUCRON SRL  <||" << endl << endl;
+	cout << " -- USUARIOS --\n" << endl;
+	cout << " 1.- ADMINISTRADOR" << endl;
+	cout << " 2.- VENDEDOR/OPERADOR" << endl;
+	cout << " 3.- CLIENTE" << endl;
+	//cout << " Elija la opcion: ";
+	//cin >> opc;
+	opc = leerNumeroEnteroPositivo("Elija la opcion: ");
+	return opc;
+}
+
+void menuPrincipal()
+{
+	int opc;
+	do
+	{
+		system("cls");
+		cout << " \n ||>   ILUCRON SRL  <||" << endl << endl;
+		cout << "ADMINISTRADOR \n" << endl;
+		cout << " 1.- AGREGAR" << endl;
+		cout << " 2.- BORRAR" << endl;
+		cout << " 3.- LISTAR" << endl;
+		cout << " 4.- BUSCAR" << endl;
+		cout << " 5.- INFORMACION" << endl;
+		cout << " 6.- PREDICCION DE VENTAS" << endl;
+		cout << " 0.- SALIR" << endl;
+		cout << " Elija la opcion: ";
+		opc = getch();
+		switch (opc)
+		{
+		case '1':
+		{
+					menuagregar();
+		}; break;
+
+		case '2':
+		{
+					menuBorrar();
+		}; break;
+
+		case '3':
+		{
+					menuAdministradorListar();
+		};  break;
+
+		case '4':
+		{
+					menuBuscar();
+		}; break;
+
+		case '5':
+		{
+					menuInformacion();
+		}; break;
+
+		case '6':
+		{
+					PrediccionVenta();
+		}; break;
+		}
+	} while (opc != '0');
+
+}
+void menuVendedor()
+{
+	int opc;
+
+	do
+	{
+		system("cls");
+		cout << " \n ||>   ILUCRON SRL  <||" << endl << endl;
+		cout << " VENDEDOR / OPERADOR  \n" << endl;
+		cout << " 1.- AGREGAR" << endl;
+		cout << " 2.- LISTAR" << endl;
+		cout << " 3.- BUSCAR" << endl;
+		cout << " 0.- SALIR" << endl;
+		cout << " Elija la opcion: ";
+		opc = getch();
+		switch (opc)
+		{
+		case '1':
+		{
+					menuVendedorAgregar();
+		}; break;
+
+		case '2':
+		{
+					menuVendedorListar();
+		}; break;
+
+		case '3':
+		{
+					menuBuscar();
+		}; break;
+		}
+	} while (opc != '0');
+
+}
+
+void menuIngresar()
+{
+	int idUsuario;
+	string nombreUsuario;
+	string contrasena;
+	char op;
+	cout << "\n\r INICIAR SESION";
+	alias = fopen("USUARIO.SEC", "rb");
+	if (alias == NULL)
+	{
+		cout << "\n\n\n\rNo existe el archivo !!!";
+		cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+		getchar();
+		return;
+	}
+	//cout << "\n\n\r Usuario: "; cin >> nombreUsuario;
+	//cout << "\n\n\r Contrasena: "; cin >> contrasena;
+	nombreUsuario = leerNombre("\n\n\r Usuario: ");
+	contrasena = leerContraseÒa("\n\n\r Contrasena: ");
+
+	fread(&Usuario, sizeof(Usuario), 1, alias);
+	while (!feof(alias))
+	{
+		if ((Usuario.nombreUsuario == nombreUsuario) && (Usuario.contrasena == contrasena))
+		{
+			cout << "\n\r Datos correctos" << endl;
+			fclose(alias);
+			cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+			getchar();
+			char tipoU = Usuario.tipo;
+			switch (tipoU)
+			{
+			case 'A':
+			{
+						menuPrincipal();
+			}; break;
+
+			case 'V':
+			{
+						menuVendedor();
+			}; break;
+
+			case 'C':
+			{
+						menuInformacion();
+			}; break;
+			}
+
+			return;
+		}
+		fread(&Usuario, sizeof(Usuario), 1, alias);
+	}
+	cout << "\n\rNo se encuentra ese Usuario o Datos incorrectos !!!\n";
+	fclose(alias);
+	cout << "\n\r<<< Oprima cualquier tecla para continuar >>>";
+	return;
+}
+
+char obtenerTipoUsuario()
+{
+	int op;
+	char t = NULL;
+	cout << " \n ||>   ILUCRON SRL  <||" << endl << endl;
+	cout << " -- USUARIOS --\n" << endl;
+	cout << " 1.- ADMINISTRADOR" << endl;
+	cout << " 2.- VENDEDOR/OPERADOR" << endl;
+	cout << " 3.- CLIENTE" << endl;
+	//cout << " Elija la opcion: ";
+	//cin >> op;
+	op = leerNumeroEnteroPositivo("Elija la opcion: ");
+	switch (op)
+	{
+	case 1:
+	{
+			  t = 'A';
+	}; break;
+
+	case 2:
+	{
+			  t = 'V';
+	}; break;
+
+	case 3:{
+			   t = 'C';
+	}; break;
+	}
+	return t;
+
+}
+bool ALTA_SECUENCIAL_USUARIO()
+{
+
+	int tipoU;
+	int codUsuario;
+
+	cout << "\n\n\n\rALTAS DE Registro de USUARIO \n";
+	cout << "\n\ CREAR CUENTA DE USUARIO";
+	//cout << "\n\n\n\r Codigo de Usuario: ";
+	//cin >> codUsuario;
+	//cin.ignore();
+	codUsuario = leerNumeroEnteroPositivo("\n\n\n\r Codigo de Usuario: ");
+
+	alias = fopen("USUARIO.SEC", "rb");
+	if (alias == NULL)
+	{
+		alias = fopen("USUARIO.SEC", "wb");
+	}
+	else
+	{
+		fread(&Usuario, sizeof(Usuario), 1, alias);
+		while (!feof(alias))
+		{
+			if (Usuario.cod_usuario == codUsuario)
+			{
+				cout << "\n\n\n\r Usuario ya existe!!! \n";
+				fclose(alias);
+				return false;
+			}
+			fread(&Usuario, sizeof(Usuario), 1, alias);
+		}
+
+		fclose(alias);
+		alias = fopen("USUARIO.SEC", "ab");
+	}
+	//cout << "\n\nNombre de Usuario: ";
+	//getline(cin, Usuario.nombreUsuario);
+	//cout << "\n\nContrasena : ";
+	//getline(cin, Usuario.contrasena);
+	Usuario.nombreUsuario = leerNombre("\n\nNombre de Usuario: ");
+	Usuario.contrasena = leerContraseÒa("\n\nContrasena : ");
+
+	tipoU = obtenerTipoUsuario();
+	Usuario.tipo = tipoU;
+	Usuario.cod_usuario = codUsuario;
+	//Usuario.edad = leerNumeroEnteroPositivo("\n\n Edad: ");
+	fwrite(&Usuario, sizeof(Usuario), 1, alias);
+	fclose(alias);
+	cout << "\n\n\n\ Usuario resgistrado!!!";
+
+	return true;
+}
+
+//void menuLogin()
+void main()
+{
+
+	int opc;
+	do
+	{
+		system("cls");
+		cout << " \n ||>   ILUCRON SRL  <||" << endl << endl;
+		cout << " \n  >>LOGIN>>\n" << endl;
+		cout << " 1.- Ingresar" << endl;
+		cout << " 2.- Crear cuenta" << endl;
+		cout << " 0.- SALIR" << endl;
+		cout << " Elija la opcion: ";
+		opc = getch();
+		switch (opc)
+		{
+		case '1':
+		{
+					menuIngresar();
+		}; break;
+
+		case '2':
+		{
+					ALTA_SECUENCIAL_USUARIO();
+					system("pause");
+		}; break;
+
+		}
+	} while (opc != '0');
+}
+
+//void main()
+//{
+//	do
+//	{
+//		//opcU = menuInicial();
+//
+//		menuLogin();
+//
+//	} while (opcU != '0');
